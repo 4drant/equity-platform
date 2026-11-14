@@ -122,12 +122,19 @@ class Extractor(Agent):
                     classification=classification,
                     confidence=confidence,
                     facts=extract_facts(text),
-                    tickers_mentioned=co_mentioned_tickers(text, self.known_tickers, item["ticker"]),
+                    tickers_mentioned=self._mentioned_tickers(item, text),
                     raw_hash=item.get("raw_hash", ""),
                     sentiment=sentiment_heuristic(text),
                 )
             )
         return signals
+
+    def _mentioned_tickers(self, item: dict[str, Any], text: str) -> list[str]:
+        explicit = {t.upper() for t in item.get("tickers", [])}
+        explicit.discard(item["ticker"].upper())
+        if explicit:
+            return sorted(explicit)
+        return co_mentioned_tickers(text, self.known_tickers, item["ticker"])
 
     def _classify(self, text: str) -> tuple[Classification, float]:
         if self.llm.available:

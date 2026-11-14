@@ -5,7 +5,7 @@ import json
 import sys
 
 from equity_platform.config import settings
-from equity_platform.data.defeatbeta import DefeatBetaSource
+from equity_platform.data.factory import build_default_source
 from equity_platform.llm.client import llm_from_env
 from equity_platform.portfolio import Portfolio
 from equity_platform.store.sqlite import Store
@@ -13,7 +13,7 @@ from equity_platform.store.sqlite import Store
 
 def _portfolio(db: str | None = None) -> Portfolio:
     store = Store(db or settings.db_path)
-    return Portfolio(store, llm_from_env(settings), DefeatBetaSource())
+    return Portfolio(store, llm_from_env(settings), build_default_source())
 
 
 def main(argv: list[str] | None = None) -> int:

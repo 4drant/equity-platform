@@ -3,14 +3,24 @@
 Autonomous equity research loop platform: per-ticker research agents, catalyst tracking, a
 cross-ticker relationship graph, and citation-verified written research.
 
-Data comes from [defeatbeta-api](https://github.com/defeat-beta/defeatbeta-api) — an open-source
-Yahoo Finance alternative hosted on Hugging Face (no API key, no rate limits): prices, financial
-statements, TTM metrics, SEC filings, earnings call transcripts, stock news, revenue breakdowns.
+Data comes from a composite of two open sources, merged behind one interface
+(`equity_platform/data/factory.py`):
+
+- **[yfinance](https://github.com/ranaroussi/yfinance)** — fresh news (minutes old), live prices,
+  upcoming earnings dates, company profile. Best for anything that must be current.
+- **[defeatbeta-api](https://github.com/defeat-beta/defeatbeta-api)** — an open-source Yahoo Finance
+  alternative on Hugging Face (no API key, no rate limits): SEC filings, earnings call transcripts,
+  quarterly financial statements, historical prices and calendars. Best for anything structured
+  and historical.
+
+`CompositeSource` merges news from both (deduped by headline, newest first), merges earnings
+calendars by date, and takes the first source with data for filings, transcripts, statements,
+profile, and prices. Per-source failures are collected in `composite.errors` and never break a run.
 
 ## Architecture
 
 ```
-DefeatBeta (Hugging Face/DuckDB)
+CompositeSource (YFinance fresh news/prices + DefeatBeta filings/transcripts/statements)
         │
    Ingestor ──► Extractor ──► Store (SQLite: signals, catalysts, theses, reports, edges)
         │             │

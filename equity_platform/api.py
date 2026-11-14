@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from equity_platform.config import settings
-from equity_platform.data.defeatbeta import DefeatBetaSource
+from equity_platform.data.factory import build_default_source
 from equity_platform.graph.engine import GraphEngine
 from equity_platform.llm.client import llm_from_env
 from equity_platform.portfolio import Portfolio
@@ -12,7 +12,7 @@ from equity_platform.store.sqlite import Store
 
 app = FastAPI(title="Equity Platform", version="0.1.0")
 store = Store(settings.db_path)
-source = DefeatBetaSource()
+source = build_default_source()
 llm = llm_from_env(settings)
 portfolio = Portfolio(store, llm, source)
 

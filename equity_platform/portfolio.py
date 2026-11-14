@@ -5,7 +5,8 @@ from typing import Any
 
 from equity_platform.agents.critic import Critic
 from equity_platform.agents.writer import Writer
-from equity_platform.data.defeatbeta import DefeatBetaSource
+from equity_platform.data.composite import CompositeSource
+from equity_platform.data.factory import build_default_source
 from equity_platform.graph.engine import GraphEngine
 from equity_platform.llm.client import LLMClient
 from equity_platform.loop import ResearchLoop
@@ -17,10 +18,10 @@ from equity_platform.store.sqlite import Store
 class Portfolio:
     """Multi-ticker layer: shared loop workers, triage queue, graph synthesis."""
 
-    def __init__(self, store: Store, llm: LLMClient, source: DefeatBetaSource | None = None) -> None:
+    def __init__(self, store: Store, llm: LLMClient, source: CompositeSource | None = None) -> None:
         self.store = store
         self.llm = llm
-        self.source = source or DefeatBetaSource()
+        self.source = source or build_default_source()
         self.graph = GraphEngine(store.edges())
         self.writer = Writer(llm)
         self.critic = Critic(llm)

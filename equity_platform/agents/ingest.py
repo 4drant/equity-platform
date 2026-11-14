@@ -35,8 +35,9 @@ class Ingestor(Agent):
                     "source": f"news:{item.get('publisher', 'unknown')}",
                     "url": str(item.get("link") or ""),
                     "headline": headline,
-                    "quote": "",
+                    "quote": str(item.get("summary") or ""),
                     "published": self._parse_date(item.get("report_date")),
+                    "tickers": [t.upper() for t in item.get("tickers", [])],
                     "raw_hash": item_hash(ticker, headline),
                 }
             )
@@ -52,6 +53,7 @@ class Ingestor(Agent):
                     "headline": headline,
                     "quote": "",
                     "published": self._parse_date(item.get("filing_date")),
+                    "tickers": [],
                     "raw_hash": item_hash(ticker, headline),
                 }
             )

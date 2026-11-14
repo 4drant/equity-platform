@@ -24,7 +24,7 @@ INGEST → EXTRACT → UPDATE STATE → DETECT → PRIORITIZE → SYNTHESIZE →
 
 | Stage | Implementation |
 |---|---|
-| Ingest | `agents/ingest.py` — DefeatBeta news + SEC filings, dedupe by content hash |
+| Ingest | `agents/ingest.py` — composite-source news (yfinance + DefeatBeta, deduped, newest first) + SEC filings, dedupe by content hash |
 | Extract | `agents/extract.py` — LLM or heuristic classification, sentiment, fact extraction, co-mention tickers |
 | Detect | `agents/sentinel.py` — catalyst discovery + proximity alerts T-14/7/1/0 |
 | Synthesize | `agents/thesis.py` — conviction updates, trigger firing |
@@ -37,18 +37,35 @@ INGEST → EXTRACT → UPDATE STATE → DETECT → PRIORITIZE → SYNTHESIZE →
 - **Portfolio** (`portfolio.py`): shared loop workers, global triage queue (impact × recency × catalyst boost × sentiment), fan-out alerts via graph propagation, consistency flags (high conviction on both sides of a competitor edge), weekly portfolio brief with clusters.
 - **GraphEngine** (`graph/engine.py`): BFS propagation with sign-preserving decay, union-find communities, competitor context for reports.
 
-## 5. Data model
+## 5. Data sources
+
+`CompositeSource` (`data/composite.py`) merges adapters behind one interface; default is
+`build_default_source()` = `YFinanceSource` then `DefeatBetaSource` (`data/factory.py`).
+
+| Data | Source | Strategy |
+|---|---|---|
+| News | yfinance + DefeatBeta | merged, deduped by headline, newest first; yfinance items carry explicit `tickers` from `finance.stockTickers` |
+| Earnings calendar | yfinance + DefeatBeta | merged by date, first source wins per date |
+| SEC filings | DefeatBeta | first source with data |
+| Earnings call transcripts | DefeatBeta | first source with data |
+| Quarterly statements | DefeatBeta | first source with data |
+| Prices | yfinance | first source with data (3mo daily) |
+| Profile | yfinance, DefeatBeta fallback | first non-empty |
+
+Per-source failures are collected in `CompositeSource.errors` and never break a run.
+
+## 6. Data model
 
 SQLite tables: `signals` (unique per ticker+hash), `catalysts`, `theses` (JSON), `reports`, `edges`, `entities`, `run_log` (append-only audit).
 
-## 6. Non-functional invariants
+## 7. Non-functional invariants
 
 - Provenance: 100% of published claims cite stored signals; Critic gate blocks failures.
 - Idempotency: signal dedupe by content hash; loops safe to re-run.
-- Graceful degradation: missing DefeatBeta package or LLM → heuristic mode, never silent gaps.
+- Graceful degradation: missing yfinance/DefeatBeta packages or LLM → heuristic mode, never silent gaps.
 - Audit: every agent action logged to `run_log` with token usage.
 
-## 7. Roadmap
+## 8. Roadmap
 
 - P5: sector/pairs agents, cluster-level theses (communities already detected).
 - P6: post-mortem calibration loop (post-mortem reports implemented; scorecard pending).
