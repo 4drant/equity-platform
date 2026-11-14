@@ -5,6 +5,7 @@ import uuid
 from typing import Any
 
 from equity_platform.agents.base import Agent
+from equity_platform.models.signals import Signal
 from equity_platform.models.thesis import (
     Assumption,
     InvalidationTrigger,
@@ -12,7 +13,6 @@ from equity_platform.models.thesis import (
     Thesis,
     ThesisLeg,
 )
-from equity_platform.models.signals import Signal
 from equity_platform.store.sqlite import Store
 
 DEFAULT_TRIGGERS = [

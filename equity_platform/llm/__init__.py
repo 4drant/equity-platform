@@ -7,8 +7,8 @@ from equity_platform.llm.client import (
 )
 
 __all__ = [
-    "LLMClient",
     "HeuristicLLM",
+    "LLMClient",
     "OpenAICompatibleLLM",
     "estimate_tokens",
     "llm_from_env",

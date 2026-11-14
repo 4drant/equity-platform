@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 from equity_platform.agents.base import Agent
+from equity_platform.agents.writer import Writer
 from equity_platform.data.defeatbeta import DefeatBetaSource
 from equity_platform.models.catalysts import Catalyst, CatalystStatus
 from equity_platform.store.sqlite import Store
-from equity_platform.agents.writer import Writer
 
 
 class Postmortem(Agent):
