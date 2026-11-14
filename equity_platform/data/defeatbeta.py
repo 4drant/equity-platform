@@ -78,6 +78,7 @@ class DefeatBetaSource:
         if news_obj is None:
             return []
         records = self._to_records(self._call_first(news_obj, ["get_news_list"]))
+        records = sorted(records, key=lambda r: str(r.get("report_date", "")), reverse=True)
         return records[:limit]
 
     def filings(self, symbol: str, limit: int = 10) -> list[dict[str, Any]]:
