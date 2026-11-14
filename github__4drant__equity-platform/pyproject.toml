@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "equity-platform"
+version = "0.1.0"
+description = "Autonomous equity research loop platform: ingest, extract, thesis, graph, reports"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.5",
+    "httpx>=0.27",
+    "defeatbeta-api>=0.0.63",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.4"]
+
+[project.scripts]
+equity = "equity_platform.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["equity_platform*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
