@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import threading
 from datetime import datetime
 from typing import Any
 
@@ -97,16 +98,20 @@ def _dt(value: Any) -> str:
 
 class Store:
     def __init__(self, path: str = ":memory:") -> None:
-        self.conn = sqlite3.connect(path)
+        self.conn = sqlite3.connect(path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
-        self.conn.executescript(SCHEMA)
-        self.conn.commit()
+        self.lock = threading.Lock()
+        with self.lock:
+            self.conn.executescript(SCHEMA)
+            self.conn.commit()
 
     def close(self) -> None:
-        self.conn.close()
+        with self.lock:
+            self.conn.close()
 
     def commit(self) -> None:
-        self.conn.commit()
+        with self.lock:
+            self.conn.commit()
 
     def save_signal(self, signal: Signal) -> bool:
         try:
@@ -333,3 +338,18 @@ class Store:
             "SELECT DISTINCT ticker FROM signals UNION SELECT symbol FROM entities"
         )
         return sorted({r[0].upper() for r in rows if r[0]})
+
+
+def _synchronized(method):
+    def wrapper(self, *args, **kwargs):
+        with self.lock:
+            return method(self, *args, **kwargs)
+
+    return wrapper
+
+
+for _name, _fn in list(vars(Store).items()):
+    if _name.startswith("__") or isinstance(_fn, (staticmethod, classmethod)):
+        continue
+    if callable(_fn):
+        setattr(Store, _name, _synchronized(_fn))
